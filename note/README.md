@@ -1,11 +1,114 @@
 # WebGLのメモ
 
+- [#010_行列演算とライブラリ](#010_行列演算とライブラリ)
 - [#009_頂点バッファの基礎](#009_頂点バッファの基礎)
 - [#008_シェーダの記述と基礎](#008_シェーダの記述と基礎)
 - [#006_頂点とポリゴン](#006_頂点とポリゴン)
 - [#005_行列(マトリックス)の基礎知識](#005_行列(マトリックス)の基礎知識)
 - [#004_レンダリングのための下準備](#004_レンダリングのための下準備)
 - [#003_3D描画の基礎知識](#003_3D描画の基礎知識)
+
+## #010_行列演算とライブラリ
+
+- javascript を用いた行列演算用のライブラリ
+  - [MatrixGL](https://github.com/kotofurumiya/matrixgl)
+      - これ使う
+  - [glMatrix](http://code.google.com/p/glmatrix/)
+  - [mjs](http://code.google.com/p/webgl-mjs/)
+  - [Sylvester](http://sylvester.jcoglan.com/)
+  - [closure](http://code.google.com/p/closure-library/)
+  - [TDL](http://code.google.com/p/threedlibrary/)
+
+- MatrixGL サンプル
+```
+const { Vector3, Vector4, Matrix4 } = require('matrixgl');
+// Vector2、Vector3、Vector4がある
+// 4次元ベクトルを作る
+const vec = new Vector4(1, 2, 3, 4);
+
+// 値を表示する（セットもできるよ！）
+console.log(vec.x); // 1
+console.log(vec.y); // 2
+console.log(vec.z); // 3
+console.log(vec.w); // 4
+
+// 全部の値を表示する
+console.log(vec.values);
+
+// ベクトルの計算 ===========
+const vec1 = new Vector4(1, 2, 3, 4);
+const vec2 = new Vector4(5, 6, 7, 8);
+const scalar = 5;
+
+// 計算！
+const vecSum = vec1.add(vec2);
+const vecSub = vec1.sub(vec2);
+const vecProd = vec1.mulByScalar(scalar);
+const vecMag = vec1.magnitude;
+
+// モデル行列
+const transform = Matrix4.identity()
+                         .translate(1, 2, 3)
+                         .rotateX(Math.PI)
+                         .scale(5, 5, 5);
+     
+// ”look at”ビュー行列                    
+const camera = new Vector3(1, 2, 3);
+const lookAt = new Vector3(4, 5, 6);
+const cameraUpDirection = new Vector3(7, 8, 9);
+
+const view = Matrix4.lookAt(camera, lookAt, cameraUpDirection);
+
+// プロジェクション行列：平行投影（orthographic）
+const orthographic = Matrix4.orthographic({
+  top: 1,
+  bottom: -1,
+  left: -1,
+  right: 1,
+  near: 1,
+  far: 2
+});
+
+// プロジェクション行列：透視投影（perspective）
+const perspective = Matrix4.perspective({
+  fovYRadian: 60 * Math.PI / 180,
+  aspectRatio: 1,
+  near: 1,
+  far: 2
+});
+
+// ModelViewProjection行列
+const mvp = perspective.mulByMatrix4(view)
+                       .mulByMatrix4(transform);
+
+// クォータニオンを作成する
+const q = new Quaternion(1, 2, 3, 4);
+
+// 回転軸を作る（Vector3）。軸は正規化されている必要がある
+const axis = new Vector3(1, 2, 3).normalize();
+const radian = 45 * Math.PI / 180;
+
+// 軸axisについてradian度の回転を表すクォータニオンを作る
+const q = Quaternion.rotationAround(axis, radian);
+
+// クォータニオンを4x4の回転行列に変換する
+const rotation = q.toRotationMatrix4();
+
+// 補間するには両方のクォータニオンが正規化されている必要があります
+const q1 = new Quaternion(1, 2, 3, 4).normalize();
+const q2 = new Quaternion(5, 6, 7, 8).normalize();
+
+// 2つのクォータニオンの中間（t=0.5）を補間して作ります
+const interpolated = q1.slerp(q2, 0.5);
+
+// Buffer
+gl.bufferData(gl.ARRAY_BUFFER, vec1.values, gl.STATIC_DRAW);
+
+// Uniform Variable
+gl.uniformMatrix4fv(mvpLocation, false, mvp.values);
+```
+
+- [APIドキュメント](https://kotofurumiya.github.io/matrixgl/)
 
 ## #009_頂点バッファの基礎
 
